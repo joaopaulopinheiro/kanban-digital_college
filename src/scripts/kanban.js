@@ -1,5 +1,6 @@
 // Salva as tarefas adicionadas ou deletadas. No começo salva vazio.
-let tasks = JSON.parse(localStorage.getItem('KanbanTasks')) || []
+let tasks = JSON.parse(localStorage.getItem('KanbanTasks'))
+let dark = localStorage.getItem('DarkStatus')
 
 // Adiciona tarefa
 const addTask = () => {
@@ -29,7 +30,7 @@ const addTask = () => {
     }
 }
 
-// Função: Mover tarefa
+// Mover tarefa
 const moveTask = (id, direction) => {
     try {
         // Procura tarefas com id únicos (data e hora)
@@ -40,55 +41,51 @@ const moveTask = (id, direction) => {
         let index = order.indexOf(task.status)
 
         // Move para a próxima coluna se o estado da tarefa for de index < 2, ou seja, a fazer ou fazendo. Atualizando o estado atual.
-        if (direction === "forward" && index < 2) { 
-            task.status = order[index + 1]; 
-        }
+        if (direction === 'forward' && index < 2) { 
+            task.status = order[index + 1]
 
-        // Move Move para a coluna anterior se o estado da tarefa for de index > , ou seja, fazendo ou feito. Atualizando o estado atual.
-        if (direction === "back" && index > 0) {
+        // Move para a coluna anterior se o estado da tarefa for de index > , ou seja, fazendo ou feito. Atualizando o estado atual.
+        } else if (direction === 'back' && index > 0) {
             task.status = order[index - 1]
         }
 
         // Salva e atualiza novamente a lista de tarefas com as alterações de posição
         saveAndRender()
+        
     } catch (error) {
         console.error('Erro ao mover tarefa:', error)
     }
 }
 
-    // Excluir tarefa
+// Excluir tarefa
 const deleteTask = (id) => {
     try {
         // Confirmação de exclusão
         if (!confirm('Tem certeza que deseja excluir esta tarefa?')) return
 
         // Filtra todas as tarefas que não são a com o ID a ser excluído.
-        tasks = tasks.filter(t => t.id !== id); 
+        tasks = tasks.filter(t => t.id !== id)
 
         // Salva e atualiza novamente a lista de tarefas sem a tarefas que foi excluída.
-        saveAndRender(); 
+        saveAndRender()
         
     } catch (error) {
-        console.error('Erro ao excluir tarefa:', error);
+        console.error('Erro ao excluir tarefa:', error)
     }
 }
 
 // Salvar e renderizar
 const saveAndRender = () => {
-        localStorage.setItem('KanbanTasks', JSON.stringify(tasks));
-        render();
+    localStorage.setItem('KanbanTasks', JSON.stringify(tasks))
+        
+    render()
 }
 
 const render = () => {
 
-    const columns = {
-        todo: document.getElementById('col-todo'),
-        doing: document.getElementById('col-doing'),
-        done: document.getElementById('col-done')
-    }
-
-    // Transforma o objeto em array para aplicar o forEach e depois limpa os dados das colunas para atualizar a lista de tarefas
-    Object.values(columns).forEach(col => col.innerHTML = '')
+    document.getElementById('col-todo').innerHTML = '';
+    document.getElementById('col-doing').innerHTML = '';
+    document.getElementById('col-done').innerHTML = '';
 
     tasks.forEach(task => {
         const card = document.createElement('div');
@@ -96,27 +93,54 @@ const render = () => {
         
         // ? : -> Mesmo que o IF e ELSE. Ou seja, caso o estado da tarefa foi X, o botão fica Y, caso contrário fica Z.
         card.innerHTML = `
-            <span class="font-medium">${task.titulo}</span>
+            <span class="text-sm">${task.titulo}</span>
             <div class="flex gap-2">
-                ${
-                // Caso for o estado Doing ou Done, ficará com os botões de mover tarefa para o estado anterior.
-                task.status !== "todo"
-                ? `<button onclick="moveTask(${task.id}, 'back')" class="p-1 bg-blue-500 text-white rounded">←</button>`
+                ${task.status !== "todo"
+                ? `<button onclick="moveTask(${task.id}, 'back')" class="p-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">←</button>`
                 : ""
                 }
                 
-                ${
-                // Caso for o estado Todo ou Doing, ficará com os botões de mover tarefa para o estado posterior.    
-                task.status !== "done"
-                ? `<button onclick="moveTask(${task.id}, 'forward')" class="p-1 bg-green-500 text-white rounded">→</button>`
+                ${task.status !== "done"
+                ? `<button onclick="moveTask(${task.id}, 'forward')" class="p-1 bg-green-500 text-white rounded hover:bg-green-600">→</button>`
                 : ""
                 }
-                <!-- Todos os estados terão o botão de excluir tarefa. Em especial, o estado Doing(Fazendo) terá todos os outros. -->
-                <button onclick="deleteTask(${task.id})" class="p-1 bg-red-500 text-white rounded">✕</button>
+                <button onclick="deleteTask(${task.id})" class="p-1 bg-red-500 text-white rounded hover:bg-red-600">✕</button>
             </div>
-        `
-        columns[task.status].appendChild(card);
+            `
+        // columns[task.status].appendChild(card);
+        document.getElementById(`col-${task.status}`).appendChild(card)
     })
 }
 
-render();
+const darkMode = () => {
+    dark = !dark
+    const container = document.getElementById('addtask')
+
+    if (dark) {
+        container.classList.add('bg-stale-900 text-white')
+        container.classList.remove('bg-white')
+    } else {
+        container.classList.remove('bg-stale-900 text-white')
+        container.classList.add('bg-white')
+    }
+}
+
+const showKanban = () => {
+    document.getElementById('kanban_section').classList.remove('hidden');
+    document.getElementById('dashboard_section').classList.add('hidden');
+    document.getElementById('btn_kanban').classList.add('bg-blue-600', 'text-white');
+    document.getElementById('btn_kanban').classList.remove('bg-white', 'text-gray-700');
+    document.getElementById('btn_dashboard').classList.add('bg-white', 'text-gray-700');
+    document.getElementById('btn_dashboard').classList.remove('bg-blue-600', 'text-white');
+}
+
+const showDashboard = () => {
+    document.getElementById('kanban_section').classList.add('hidden');
+    document.getElementById('dashboard_section').classList.remove('hidden');
+    document.getElementById('btn_dashboard').classList.add('bg-blue-600', 'text-white');
+    document.getElementById('btn_dashboard').classList.remove('bg-white', 'text-gray-700');
+    document.getElementById('btn_kanban').classList.add('bg-white', 'text-gray-700');
+    document.getElementById('btn_kanban').classList.remove('bg-blue-600', 'text-white');
+}
+
+render()
