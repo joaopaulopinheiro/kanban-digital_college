@@ -4,6 +4,10 @@ let tasks = JSON.parse(localStorage.getItem('KanbanTasks')) || []
 // Verifica o status do tema escuro da página e retorna um valor booleano
 let dark = localStorage.getItem('DarkStatus') === 'true'
 
+// Armazena os gráficos
+let chartDist = ''
+let chartQtd = ''
+
 // Adiciona uma nova tarefa
 const addTask = () => {
     try {
@@ -21,7 +25,7 @@ const addTask = () => {
             status: 'todo'
         })
 
-        // Resetar o campo de digitar a tarefa.
+        // Resetar o campo de digitar a tarefa e foca nele novamente.
         input.value = ''
         input.focus()
 
@@ -148,7 +152,7 @@ const toggleDarkMode = (dark) => {
         taskInput.classList.remove('bg-white', 'text-black')
         
         btnDark.classList.add('bg-slate-600', 'text-white', 'hover:bg-slate-700')
-        btnDark.classList.remove('bg-gray-300', 'hover:bg-gray-400')
+        btnDark.classList.remove('bg-gray-200', 'hover:bg-gray-400')
           
 
     } else {
@@ -162,7 +166,7 @@ const toggleDarkMode = (dark) => {
         taskInput.classList.add('bg-white', 'text-black')
         
         btnDark.classList.remove('bg-slate-600', 'text-white')
-        btnDark.classList.add('bg-gray-300', 'hover:bg-gray-400')
+        btnDark.classList.add('bg-gray-200', 'hover:bg-gray-400')
     }
 }
 
@@ -171,6 +175,7 @@ const darkMode = () => {
     localStorage.setItem('DarkStatus', dark)
     toggleDarkMode(dark)
 
+    renderCharts()
     render()
 }
 
@@ -192,6 +197,8 @@ const showDashboard = () => {
     document.getElementById('btn_dashboard').classList.remove('bg-gray-500', 'hover:bg-gray-600')
     document.getElementById('btn_kanban').classList.add('bg-gray-500', 'hover:bg-gray-600')
     document.getElementById('btn_kanban').classList.remove('bg-blue-600', 'hover:bg-blue-700')
+
+    renderCharts()
 }
 
 // Ao inicializar a página, renderiza as tarefas.
@@ -202,4 +209,99 @@ window.onload = () => {
     if (dark) {
         toggleDarkMode(true)
     } 
+}
+
+// Renderiza os gráficos
+const renderCharts = () => {
+
+    // Contar a quantidade de tafefas por estado.
+    const todoCount = tasks.filter(t => t.status === 'todo').length
+    const doingCount = tasks.filter(t => t.status === 'doing').length
+    const doneCount = tasks.filter(t => t.status === 'done').length
+
+    const textColor = dark ? '#ffffff' : '#6f7379'
+
+    // Limpa os gráficos e depois renderiza novamente
+    if (chartDist) {
+        chartDist.destroy()
+    }
+    if (chartQtd) {
+        chartQtd.destroy()
+    }
+    
+    // Gráfico 1 - Distribuição de Tarefas
+    const ctxDist = document.getElementById('chart-dist')
+    chartDist = new Chart(ctxDist, {
+        type: 'pie',
+        data: {
+            labels: ['A Fazer', 'Fazendo', 'Feito'],
+            datasets: [{
+                label: 'Quantidade',
+                data: [todoCount, doingCount, doneCount],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(75, 192, 192, 1)'
+                ],
+                borderWidth: 2,
+                borderColor: dark ? '#1e293b' : '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: textColor
+                    }
+                }
+            },
+        }
+    })
+
+    // Gráfico 2 - Quantidade de Tarefas
+    const ctxQtd = document.getElementById('chart-qtd')
+    chartQtd = new Chart(ctxQtd, {
+        type: 'bar',
+        data: {
+            labels: ['A Fazer', 'Fazendo', 'Feito'],
+            datasets: [{
+                label: 'Tarefas',
+                data: [todoCount, doingCount, doneCount],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(75, 192, 192, 1)'
+                ],
+                borderWidth: 2,
+                borderColor: dark ? '#1e293b' : '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: textColor
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        color: textColor
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        color: textColor
+                    }
+                }
+            },
+        }
+    })
 }
