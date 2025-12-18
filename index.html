@@ -1,31 +1,27 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Projeto: Kanban</title>
     
-    <!-- Importar Tailwind CSS (OK) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Importar Chart JS (OK) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <script src="src/scripts/kanban.js"></script>
 </head>
-
 <body class="bg-gray-200 min-h-screen">
-    <!-- Header da página (OK) -->
+
+    <!-- Header da página -->
     <header id="header" class="bg-white shadow mb-3">
         <div class="max-w-6xl mx-auto p-4 flex justify-between">
             <h1 class="text-2xl font-bold">Kanban + Dashboard</h1>
-            <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-400 text-sm" id="btn_dark" onclick="darkMode()">
+            <button class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 text-sm" id="btn_dark" onclick="darkMode()">
                 &#x1F319; Dark
             </button>
         </div>
     </header>
 
-    <!-- Botões de navegação (OK) -->
+    <!-- Botões de navegação -->
     <div class="max-w-6xl mx-auto p-4 flex gap-2 mb-3">
         <button class="bg-blue-600 text-white shadow px-4 py-2 rounded hover:bg-blue-700 text-sm" id="btn_kanban" onclick="showKanban()">
             &#x1F4CB; Kanban
@@ -35,7 +31,7 @@
         </button>
     </div>
 
-    <!-- Formulário (OK) -->
+    <!-- Formulário + Kanban -->
     <div id="container_kanban">
         <div class="max-w-6xl mx-auto px-4 mb-3">
             <div id="addtask" class="bg-white p-4 pb-6 rounded-lg shadow">
@@ -47,12 +43,10 @@
             </div>
         </div>
 
-        <!-- Kanban Grid (OK) -->
         <div class="max-w-6xl min-h-[284px] mx-auto px-4 pb-4 grid grid-cols-1 md:grid-cols-3 gap-6">
             <!-- A Fazer -->
             <div id="col-todo-container" class="bg-white p-4 rounded-lg shadow">
                 <h2 class="text-lg font-semibold mb-4">A Fazer</h2>
-                <!-- Quando as tarefas forem adicionadas, elas serão criadas nessa div -->
                 <div id="col-todo" class="space-y-3 min-h-[200px]" ondrop="dropHandler(event)" ondragover="dragoverHandler(event)"></div>
             </div>
 
@@ -70,9 +64,10 @@
         </div>
     </div>
 
-    <!-- Dashboard Grid (OK) -> Só aparece quando o botão é clicado. -->
+    <!-- Dashboard -->
     <div id="container_dashboard" class="hidden">
         <div class="max-w-6xl min-h-[418px] mx-auto px-4 pb-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+            
             <!-- Distribuição de Tarefas (Gráfico) -->
             <div id="dashboard-dist" class="bg-white p-4 pb-6 rounded-lg shadow">
                 <h2 class="text-lg font-semibold mb-4">Distribuição de Tarefas</h2>

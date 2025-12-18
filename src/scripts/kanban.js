@@ -1,58 +1,27 @@
-// Salva as tarefas adicionadas ou deletadas. No começo, salva vazio como um array.
 let tasks = JSON.parse(localStorage.getItem('KanbanTasks')) || []
-
-// Verifica o status do tema escuro da página e retorna um valor booleano
 let dark = localStorage.getItem('DarkStatus') === 'true'
 
-// Armazena os gráficos
 let chartDist = null
 let chartQtd = null
 
-// Permite que uma área (coluna) receba elementos arrastados
-function dragoverHandler(ev) {
-    ev.preventDefault()
-}
 
-// Salva o ID do card sendo arrastado
-function dragstartHandler(ev) {
-    ev.dataTransfer.setData("id", ev.target.id)
-}
 
-// Processa quando o elemento é solto na coluna
-function dropHandler(ev) {
-    ev.preventDefault()
-    const id = Number(ev.dataTransfer.getData("id"))
-    const task = tasks.find(t => t.id === id)
-    
-    
-     if (task) {
-        task.status = ev.currentTarget.id.replace('col-', '')
-        saveAndRender()
-    }
-}
-
-// Adiciona uma nova tarefa
 const addTask = () => {
     try {
         const input = document.getElementById('taskInput')
-        // Retira espaços do começo e/ou do final da string
         const taskText = input.value.trim()
 
-        // Evita que o usuário adicione uma tarefa vazia
         if (taskText === '') return alert('Por favor, insira uma tarefa válida.')
 
-        // Caso o local storage esteja vazio, insere no 'KanbanTasks' as novas tarefas adicionadas. Criando um array de objetos com as informações abaixo (elas ainda não foram salvas em cache).
         tasks.push({
             id: Date.now(),
             titulo: taskText,
             status: 'todo'
         })
 
-        // Resetar o campo de digitar a tarefa e foca nele novamente.
         input.value = ''
         input.focus()
 
-        // Salva e atualiza a lista de tarefas com a adição das novas tarefas
         saveAndRender()
 
     } catch (error) {
@@ -60,16 +29,13 @@ const addTask = () => {
     }
 }
 
-// Excluir uma tarefa
+
+
 const deleteTask = (id) => {
     try {
-        // Confirmação de exclusão
         if (!confirm('Tem certeza que deseja excluir esta tarefa?')) return
 
-        // Filtra todas as tarefas que não são a com o ID a ser excluído.
         tasks = tasks.filter(t => t.id !== id)
-
-        // Salva e atualiza novamente a lista de tarefas sem a tarefa que foi excluída.
         saveAndRender()
         
     } catch (error) {
@@ -77,16 +43,17 @@ const deleteTask = (id) => {
     }
 }
 
-// Salvar e renderizar as informações do localStorage
+
+
 const saveAndRender = () => {
     localStorage.setItem('KanbanTasks', JSON.stringify(tasks))
     render()
 }
 
-// Renderiza as tarefas em cada alteração que foi feita anteriormente ou que for feita depois.
+
+
 const render = () => {
 
-    // Limpa todas as colunas
     const columns = { 
         todo: document.getElementById('col-todo'),
         doing: document.getElementById('col-doing'),
@@ -99,9 +66,10 @@ const render = () => {
         const card = document.createElement('div');
         const cardBackground = dark ? 'bg-slate-700' : 'bg-gray-100'
         const textColor = dark ? 'text-white' : 'text-black'
+
         card.className = `${cardBackground} ${textColor} p-3 rounded shadow flex justify-between items-center`
 
-        // Permitir o drag e drop nos cards
+        // Permite o drag e drop nos cards
         card.id = task.id
         card.draggable = true
         card.ondragstart = dragstartHandler
@@ -114,9 +82,11 @@ const render = () => {
     })
 }
 
+
+
 const toggleDarkMode = (dark) => {
 
-    // Todos os elementos  que vão serem alterados na mudança de tema claro ou escuro
+    // Todos esses elementos vão ser alterados na mudança de tema claro ou escuro
     const columns = { 
         header: document.getElementById('header'),
         addtask: document.getElementById('addtask'),
@@ -141,7 +111,7 @@ const toggleDarkMode = (dark) => {
         taskInput.classList.remove('bg-white', 'text-black')
         
         btnDark.classList.add('bg-slate-600', 'text-white', 'hover:bg-slate-700')
-        btnDark.classList.remove('bg-gray-200', 'hover:bg-gray-400')
+        btnDark.classList.remove('bg-gray-200', 'hover:bg-gray-300')
           
 
     } else {
@@ -159,6 +129,8 @@ const toggleDarkMode = (dark) => {
     }
 }
 
+
+
 const darkMode = () => {
     dark = !dark
     localStorage.setItem('DarkStatus', dark)
@@ -167,12 +139,13 @@ const darkMode = () => {
     // Só irá renderizar os gráficos quando a seção dashboard estiver ativa
     if (!document.getElementById('container_dashboard').classList.contains('hidden')) {
         renderCharts()
-    } 
+    }
     
     render()
 }
 
-// Ao pressionar o botão Kanban, o container das tarefas aparece
+
+
 const showKanban = () => {
     document.getElementById('container_kanban').classList.remove('hidden')
     document.getElementById('container_dashboard').classList.add('hidden')
@@ -182,7 +155,8 @@ const showKanban = () => {
     document.getElementById('btn_dashboard').classList.remove('bg-blue-600', 'hover:bg-blue-700')
 }
 
-// Ao pressionar o botão Dashboard, o container dos gráficos aparece
+
+
 const showDashboard = () => {
     document.getElementById('container_kanban').classList.add('hidden')
     document.getElementById('container_dashboard').classList.remove('hidden')
@@ -194,6 +168,8 @@ const showDashboard = () => {
     renderCharts()
 }
 
+
+
 // Ao inicializar a página, renderiza as tarefas.
 window.addEventListener('load', () => {
     render()
@@ -202,10 +178,11 @@ window.addEventListener('load', () => {
     if (dark) return toggleDarkMode(true)
 })
 
+
+
 // Renderiza os gráficos
 const renderCharts = () => {
 
-    // Contar a quantidade de tafefas por estado.
     const todoCount = tasks.filter(t => t.status === 'todo').length
     const doingCount = tasks.filter(t => t.status === 'doing').length
     const doneCount = tasks.filter(t => t.status === 'done').length
@@ -235,7 +212,6 @@ const renderCharts = () => {
                     'rgba(75, 192, 192, 1)'
                 ],
                 borderWidth: 2,
-                // Altera a cor da borda de acordo com o tema da página
                 borderColor: dark ? '#1e293b' : '#fff'
             }]
         },
@@ -243,7 +219,6 @@ const renderCharts = () => {
             responsive: true,
             maintainAspectRatio: true,
             plugins: {
-                // Altera a cor do texto de acordo com o tema da página
                 legend: {
                     labels: {
                         color: textColor
@@ -283,11 +258,9 @@ const renderCharts = () => {
             },
             scales: {
                 x: {
-                    // Altera a cor dos limites de acordo com o tema da página
                     ticks: {
                         color: textColor
                     },
-                    // Altera a cor da linha de grade de acordo com o tema da página
                     grid: { 
                         color: dark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' 
                     }
@@ -295,7 +268,6 @@ const renderCharts = () => {
                 y: {
                     beginAtZero: true,
                     ticks: {
-                        // Os limites aumentam de 1 em 1
                         stepSize: 1,
                         color: textColor
                     },
@@ -306,4 +278,28 @@ const renderCharts = () => {
             },
         }
     })
+}
+
+
+
+// Permite que uma área (coluna) receba elementos arrastados
+function dragoverHandler(ev) {
+    ev.preventDefault()
+}
+
+
+// Salva o ID do card sendo arrastado
+function dragstartHandler(ev) {
+    ev.dataTransfer.setData("id", ev.target.id)
+}
+
+
+// Processa quando o elemento é solto na coluna
+function dropHandler(ev) {
+    ev.preventDefault()
+    const id = Number(ev.dataTransfer.getData("id"))
+    const task = tasks.find(t => t.id === id)
+    
+    task.status = ev.currentTarget.id.replace('col-', '')
+    saveAndRender()
 }
