@@ -5,8 +5,31 @@ let tasks = JSON.parse(localStorage.getItem('KanbanTasks')) || []
 let dark = localStorage.getItem('DarkStatus') === 'true'
 
 // Armazena os gráficos
-let chartDist = ''
-let chartQtd = ''
+let chartDist = null
+let chartQtd = null
+
+// Permite que uma área (coluna) receba elementos arrastados
+function dragoverHandler(ev) {
+    ev.preventDefault()
+}
+
+// Salva o ID do card sendo arrastado
+function dragstartHandler(ev) {
+    ev.dataTransfer.setData("id", ev.target.id)
+}
+
+// Processa quando o elemento é solto na coluna
+function dropHandler(ev) {
+    ev.preventDefault()
+    const id = Number(ev.dataTransfer.getData("id"))
+    const task = tasks.find(t => t.id === id)
+    
+    
+     if (task) {
+        task.status = ev.currentTarget.id.replace('col-', '')
+        saveAndRender()
+    }
+}
 
 // Adiciona uma nova tarefa
 const addTask = () => {
@@ -34,33 +57,6 @@ const addTask = () => {
 
     } catch (error) {
         console.error('Erro ao adicionar tarefa:', error)
-    }
-}
-
-// Mover uma tarefa de posição
-const moveTask = (id, direction) => {
-    try {
-        // Procura tarefas com id únicos (data e hora)
-        const task = tasks.find(t => t.id === id)
-
-        // Verifica qual o estado da tarefa: A fazer, Fazendo ou Feito.
-        const order = ['todo', 'doing', 'done']
-        let index = order.indexOf(task.status)
-
-        // Move para a próxima coluna se o estado da tarefa for de index < 2, ou seja, TODO ou DOING. Atualizando o estado atual.
-        if (direction === 'forward' && index < 2) { 
-            task.status = order[index + 1]
-
-        // Move para a coluna anterior se o estado da tarefa for de index > 0, ou seja, DOING ou DONE. Atualizando o estado atual.
-        } else if (direction === 'back' && index > 0) {
-            task.status = order[index - 1]
-        }
-
-        // Salva e atualiza novamente a lista de tarefas com as alterações da posição/estado da tarefa em relação ao array criado.
-        saveAndRender()
-        
-    } catch (error) {
-        console.error('Erro ao mover tarefa:', error)
     }
 }
 
@@ -104,22 +100,15 @@ const render = () => {
         const cardBackground = dark ? 'bg-slate-700' : 'bg-gray-100'
         const textColor = dark ? 'text-white' : 'text-black'
         card.className = `${cardBackground} ${textColor} p-3 rounded shadow flex justify-between items-center`
+
+        // Permitir o drag e drop nos cards
+        card.id = task.id
+        card.draggable = true
+        card.ondragstart = dragstartHandler
         
         card.innerHTML = `
             <span class="text-sm">${task.titulo}</span>
-            <div class="flex gap-2">
-                ${task.status !== "todo"
-                ? `<button onclick="moveTask(${task.id}, 'back')" class="p-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">←</button>`
-                : ""
-                }
-                
-                ${task.status !== "done"
-                ? `<button onclick="moveTask(${task.id}, 'forward')" class="p-1 bg-green-500 text-white rounded hover:bg-green-600">→</button>`
-                : ""
-                }
-
-                <button onclick="deleteTask(${task.id})" class="p-1 bg-red-500 text-white rounded hover:bg-red-600">✕</button>
-            </div>
+            <button onclick="deleteTask(${task.id})" class="p-1 bg-red-500 text-white rounded hover:bg-red-600">✕</button>
             `
         columns[task.status].appendChild(card);
     })
@@ -175,7 +164,11 @@ const darkMode = () => {
     localStorage.setItem('DarkStatus', dark)
     toggleDarkMode(dark)
 
-    renderCharts()
+    // Só irá renderizar os gráficos quando a seção dashboard estiver ativa
+    if (!document.getElementById('container_dashboard').classList.contains('hidden')) {
+        renderCharts()
+    } 
+    
     render()
 }
 
@@ -202,14 +195,12 @@ const showDashboard = () => {
 }
 
 // Ao inicializar a página, renderiza as tarefas.
-window.onload = () => {
+window.addEventListener('load', () => {
     render()
 
     // Chama a função de tema dark ao recarregar a página, apenas se ela já estava ativada antes.
-    if (dark) {
-        toggleDarkMode(true)
-    } 
-}
+    if (dark) return toggleDarkMode(true)
+})
 
 // Renderiza os gráficos
 const renderCharts = () => {
@@ -244,6 +235,7 @@ const renderCharts = () => {
                     'rgba(75, 192, 192, 1)'
                 ],
                 borderWidth: 2,
+                // Altera a cor da borda de acordo com o tema da página
                 borderColor: dark ? '#1e293b' : '#fff'
             }]
         },
@@ -251,6 +243,7 @@ const renderCharts = () => {
             responsive: true,
             maintainAspectRatio: true,
             plugins: {
+                // Altera a cor do texto de acordo com o tema da página
                 legend: {
                     labels: {
                         color: textColor
@@ -290,15 +283,24 @@ const renderCharts = () => {
             },
             scales: {
                 x: {
+                    // Altera a cor dos limites de acordo com o tema da página
                     ticks: {
                         color: textColor
+                    },
+                    // Altera a cor da linha de grade de acordo com o tema da página
+                    grid: { 
+                        color: dark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' 
                     }
                 },
                 y: {
                     beginAtZero: true,
                     ticks: {
+                        // Os limites aumentam de 1 em 1
                         stepSize: 1,
                         color: textColor
+                    },
+                    grid: { 
+                        color: dark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' 
                     }
                 }
             },
